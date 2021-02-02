@@ -5,7 +5,7 @@ class bot
     public $apiUrl;
     public $chatID = -1001254914492;
     public $url = 'https://api.telegram.org/';
-    public $token = '1398922633:AAFe3PdHf_q1ErbybUaEZ_sFfcy1d-1L6d0';
+    public $token = 'YOUR_TOKEN';
 
     public function __construct()
     {
