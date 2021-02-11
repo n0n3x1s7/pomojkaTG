@@ -3,21 +3,56 @@
 class bot
 {
     public $apiUrl;
-    public $chatID = -1001254914492;
+    private $chatID = -1001254914492;
     public $url = 'https://api.telegram.org/';
-    public $token = 'YOUR_TOKEN';
+    private $token = 'YOUR_TOKEN';
 
     public function __construct()
     {
         $this->apiUrl = $this->url . 'bot' . $this->token;
     }
 
-    public function apiSendMessage($text, $chatID)
+    public function apiSendMessage($text)
     {
-        $params = [
-            'chat_id' => $chatID,
-            'text' => $text
-        ];
+        $params = ['text' => $text];
+        $this->request('sendMessage', $params);
+    }
+
+    public function apiCommandResponse($command)
+    {
+        //если ответ с кнопки обрезаем лишнее
+        $command = $command['callback_query'] ? $command['callback_query'] : $command['message'];
+
+        // преобразуем любые команды в нижний регистр utf-8
+        $message = mb_strtolower(($command['text'] ? $command['text'] : $command['data']), 'utf-8');
+
+        switch ($message)
+        {
+            case 'показать кто в доте':  case 'показать кто в дискорде':
+            $params = ['text' => 'Будет доступно в следующей версии'];
+            break;
+            case 'го': case 'сбор!':
+            $params = ['text' => $message['from']['username'] . 'собирает тварей! @FL00D @Gubernateur @Mikhai11 @gitaroshei @Borgyy @Durdom @n0n3x1s7 @aivanova4'];
+            break;
+            case 'бот':
+                $params = [
+                    'text' => 'Че хочешь тварь?',
+                    'reply_markup' => [
+                        'resize_keyboard' => true,
+                        'keyboard' => [
+                            [
+                                ['text' => 'Показать кто в доте'],
+                                ['text' => 'Показать кто в дискорде'],
+                                ['text' => 'Сбор!']
+                            ]
+                        ]
+                    ]
+                ];
+                break;
+            default:
+                break;
+        }
+
         $this->request('sendMessage', $params);
     }
 
@@ -39,6 +74,7 @@ class bot
             }
             $params_arr[] = urlencode($key) . '=' . urlencode($val);
         }
+        $params_arr[] = 'chat_id =' . $this->chatID;
         $query_string = implode('&', $params_arr);
 
         $url = $this->apiUrl . '/' . $method;
@@ -79,6 +115,18 @@ class bot
     }
 }
 
+// при входящем сообщении бота пишем в command
+$command = json_decode(file_get_contents('php://input'), true);
+
+// если пустая команда то выход
+if (!empty($command['message']['text'])) {
+    $ex = new bot();
+    $ex->apiCommandResponse($command);
+    unset($ex);
+}else{
+    exit();
+}
+
 $ex = new bot();
 $message = 'Сбор тварей @FL00D @Gubernateur @Mikhai11 @gitaroshei @Borgyy @Durdom @n0n3x1s7 @aivanova4';
-$ex->apiSendMessage($message, $ex->chatID);
+$ex->apiSendMessage($message);
